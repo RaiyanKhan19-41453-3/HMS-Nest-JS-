@@ -1,0 +1,20 @@
+{
+    "DepartmentName":"asd",
+    "DepartmentHead":"asd",
+    "Description":"asdasd",
+    "ContactEmail":"asdsd",
+    "NumberOfWorkers":2
+}
+
+{
+    "TeacherName":"asd",
+    "Dob":"asd",
+    "Phone":"+8801611111111",
+    "Email":"asdsd@gmail.com",
+    "Address":"asd",
+    "EmploymentStatus":"asd",
+    "EducationalBackground":"asdsad",
+    "ProfessionalExperience":"asdas",
+    "PersonalWebsite":"asdasd",
+    "departmentDeptId":1
+}
