@@ -12,6 +12,9 @@ export class TeacherSalaryEntity{
     @Column()
     Bonuses: number;
 
+    @Column()
+    TeacherProfileId: number;
+
     @OneToOne(() => TeacherProfileEntity, teacherProfileEntity => teacherProfileEntity.Teacher, { cascade: true})
     @JoinColumn()
     Teacher: TeacherProfileEntity;

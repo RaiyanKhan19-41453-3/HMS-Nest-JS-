@@ -8,6 +8,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { getEnabledCategories } from 'trace_events';
 import { SessionGuard } from '../session.guard';
+import { TeacherProfileUpdateDTO } from '../DTOs/teacherProfileUpdate.dto';
+import { TeacherSalaryUpdateDTO } from '../DTOs/teacherSalaryUpdate.dto';
 
 @Controller('Teacher')
 @UsePipes(new ValidationPipe())
@@ -119,29 +121,29 @@ export class TeacherController {
     }
   }
 
-  @Put('/updateTeacherProfile/:id')
+  @Put('/updateTeacherProfile')
   @UseGuards(SessionGuard)
-  updateTeacherProfile(@Session() session, @Body() profileDTO:TeacherProfileDTO, @Param('id', ParseIntPipe) id: number){
+  updateTeacherProfile(@Session() session, @Body() profileDTO:TeacherProfileUpdateDTO){
     try{
-      return this.teacherService.updateTeacherProfile(session.email, id, profileDTO);
+      return this.teacherService.updateTeacherProfile(session.email, profileDTO);
+    }catch(error){
+      throw new HttpException(error.message,HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Put('/updateTeacherSalary')
+  updateTeacherSalary(@Body() salaryDTO:TeacherSalaryUpdateDTO){
+    try{
+      return this.teacherService.updateTeacherSalary(salaryDTO.TeacherProfileId, salaryDTO);
     }catch(error){
       throw new HttpException('Cant Update',HttpStatus.BAD_REQUEST);
     }
   }
 
-  @Put('/updateTeacherSalary/:id')
-  updateTeacherSalary(@Body() salaryDTO:TeacherSalaryDTO, @Param('id', ParseIntPipe) id: number){
+  @Put('/updateResearch')
+  updateResearch(@Body() researchDTO:ResearchDTO){
     try{
-      return this.teacherService.updateTeacherSalary(id, salaryDTO);
-    }catch(error){
-      throw new HttpException('Cant Update',HttpStatus.BAD_REQUEST);
-    }
-  }
-
-  @Put('/updateResearch/:id')
-  updateResearch(@Body() researchDTO:ResearchDTO, @Param('id', ParseIntPipe) id: number){
-    try{
-      return this.teacherService.updateResearch(id, researchDTO);
+      return this.teacherService.updateResearch(researchDTO.TeacherProfileId, researchDTO);
     }catch(error){
       throw new HttpException('Cant Update',HttpStatus.BAD_REQUEST);
     }
@@ -242,6 +244,15 @@ export class TeacherController {
       return this.teacherService.getTeacherListWithinSalaryRange(low, high);
     }catch(error){
       throw new HttpException('Cant find', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Put('/changeDepartment/EmployeID/:eId/DepartmentId/:dId')
+  async changeDepartment(@Param('eId', ParseIntPipe) ed: number, @Param('dId', ParseIntPipe) dd: number){
+    try{
+      return await this.teacherService.transferDeparment(ed, dd);
+    }catch(error){
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 

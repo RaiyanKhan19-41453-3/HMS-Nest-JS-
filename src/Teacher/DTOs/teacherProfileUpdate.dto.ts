@@ -1,16 +1,12 @@
 import { IsEmail, Matches } from "class-validator";
 import { DepartmentEntity } from "../Entities/department.entity";
 
-export class TeacherProfileDTO{
+export class TeacherProfileUpdateDTO{
     TeacherName: string;
 
     Dob: string;
 
-    @Matches(/^\+880[0-9]{10}$/)
     Phone: string;
-
-    @IsEmail()
-    Email: string;
 
     Address: string;
 
@@ -21,10 +17,4 @@ export class TeacherProfileDTO{
     ProfessionalExperience: string;
 
     PersonalWebsite: string;
-
-    filename: string;
-
-    DepartmentId: number;
-
-    Department: DepartmentEntity;
 }

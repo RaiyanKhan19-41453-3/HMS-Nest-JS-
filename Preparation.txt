@@ -3,18 +3,30 @@
     "DepartmentHead":"asd",
     "Description":"asdasd",
     "ContactEmail":"asdsd",
-    "NumberOfWorkers":2
+    "NumberOfWorkers":0
 }
 
 {
     "TeacherName":"asd",
     "Dob":"asd",
     "Phone":"+8801611111111",
-    "Email":"asdsd@gmail.com",
+    "Email":"asd@gmail.com",
     "Address":"asd",
     "EmploymentStatus":"asd",
     "EducationalBackground":"asdsad",
     "ProfessionalExperience":"asdas",
     "PersonalWebsite":"asdasd",
-    "departmentDeptId":1
+    "DepartmentId":1
+}
+
+{
+    "Amount":1000,
+    "Bonuses":0,
+    "TeacherProfileId":4
+}
+
+{
+    "ResearchName":"asddddd",
+    "Link":"asdad",
+    "TeacherProfileId":4
 }

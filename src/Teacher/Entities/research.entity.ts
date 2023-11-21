@@ -12,6 +12,9 @@ export class ResearchEntity{
     @Column()
     Link: string;
 
+    @Column()
+    TeacherProfileId: number;
+
     @ManyToOne(() => TeacherProfileEntity, (teacherProfileEntity) => teacherProfileEntity.Researches)
     Teacher: TeacherProfileEntity;
 }

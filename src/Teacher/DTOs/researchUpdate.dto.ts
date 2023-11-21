@@ -1,13 +1,8 @@
 import { TeacherProfileEntity } from "../Entities/teacherProfile.entity";
 
-export class ResearchDTO{
-    Id: number;
+export class ResearchUpdateDTO{
 
     ResearchName: string;
 
     Link: string;
-
-    TeacherProfileId: number;
-    
-    Teacher: TeacherProfileEntity;
 }

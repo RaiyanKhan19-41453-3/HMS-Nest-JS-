@@ -9,6 +9,10 @@ import { TeacherSalaryDTO } from '../DTOs/teacherSalary.dto';
 import { TeacherSalaryEntity } from '../Entities/teacherSalary.entity';
 import { ResearchDTO } from '../DTOs/research.dto';
 import { ResearchEntity } from '../Entities/research.entity';
+import { TeacherProfileUpdateDTO } from '../DTOs/teacherProfileUpdate.dto';
+import { ResearchUpdateDTO } from '../DTOs/researchUpdate.dto';
+import { DepartmentUpdateDTO } from '../DTOs/departmentUpdate.dto';
+import { TeacherSalaryUpdateDTO } from '../DTOs/teacherSalaryUpdate.dto';
 
 @Injectable()
 export class TeacherService {
@@ -31,17 +35,22 @@ export class TeacherService {
   }
 
   async addTeacherProfile(ProfileDTO: TeacherProfileDTO){
-    await this.TeacherProfileRepo.save(ProfileDTO);
-    const Dept = await this.DepartmentRepo.findOneBy({DeptId: ProfileDTO.DepartmentId});
-    (await Dept).NumberOfWorkers += 1;
-    return await this.DepartmentRepo.save(Dept);
+    const dept = await this.DepartmentRepo.findOneBy({DeptId:ProfileDTO.DepartmentId});
+    ProfileDTO.Department = dept;
+    (await dept).NumberOfWorkers += 1;
+    await this.DepartmentRepo.save(dept);
+    return await this.TeacherProfileRepo.save(ProfileDTO);
   }
 
   async addTeacherSalary(SalaryDTO: TeacherSalaryDTO){
+    const teacher = await this.TeacherProfileRepo.findOneBy({TeacherProfileId:SalaryDTO.TeacherProfileId});
+    SalaryDTO.Teacher = teacher;
     return await this.TeacherSalaryRepo.save(SalaryDTO);
   }
 
   async addResearch(ResearchDTO: ResearchDTO){
+    const teacher = await this.TeacherProfileRepo.findOneBy({TeacherProfileId:ResearchDTO.TeacherProfileId});
+    ResearchDTO.Teacher = teacher;
     return await this.ResearchRepo.save(ResearchDTO);
   }
 
@@ -101,25 +110,39 @@ export class TeacherService {
 
   //Update Part Start
 
-  async updateDepartment(id: number, DeptDTO: DepartmentDTO): Promise<DepartmentDTO>{
+  async updateDepartment(id: number, DeptDTO: DepartmentUpdateDTO): Promise<DepartmentDTO>{
     await this.DepartmentRepo.update(id, DeptDTO);
-    return this.DepartmentRepo.findOneBy({DeptId:id});
+    return await this.DepartmentRepo.findOneBy({DeptId:id});
   }
 
-  async updateTeacherProfile(email: string, id: number, ProfileDTO: TeacherProfileDTO): Promise<any>{
+  async updateTeacherProfile(email: string, ProfileDTO: TeacherProfileUpdateDTO): Promise<any>{
     //const id = this.TeacherProfileRepo.findOneBy({TeacherProfileId:id})
+    //const dept = await this.DepartmentRepo.findOneBy({DeptId: ProfileDTO.DepartmentId});
     await this.TeacherProfileRepo.update({Email: email}, ProfileDTO);
-    return this.TeacherProfileRepo.findOneBy({TeacherProfileId:id});
+    // await this.TeacherProfileRepo.update({
+    //   Email: email
+    // }, 
+    // {
+    //   TeacherName: ProfileDTO.TeacherName, 
+    //   Dob: ProfileDTO.Dob,
+    //   Phone: ProfileDTO.Phone,
+    //   Address: ProfileDTO.Address,
+    //   PersonalWebsite: ProfileDTO.PersonalWebsite,
+    //   ProfessionalExperience: ProfileDTO.ProfessionalExperience,
+    //   Department: dept
+    // });
+    return await this.TeacherProfileRepo.findOneBy({Email: email});
   }
 
-  async updateTeacherSalary(id: number, SalaryDTO: TeacherSalaryDTO): Promise<any>{
-    await this.TeacherSalaryRepo.update(id, SalaryDTO);
-    return this.TeacherSalaryRepo.findOneBy({SalaryId:id});
+  async updateTeacherSalary(id: number, SalaryDTO: TeacherSalaryUpdateDTO): Promise<any>{
+    var salary = await this.TeacherSalaryRepo.findOneBy({TeacherProfileId: id});
+    await this.TeacherSalaryRepo.update(salary.SalaryId, SalaryDTO);
+    return await this.TeacherSalaryRepo.findOneBy({SalaryId:salary.SalaryId});
   }
 
-  async updateResearch(id: number, ResearchDTO: ResearchDTO): Promise<any>{
+  async updateResearch(id: number, ResearchDTO: ResearchUpdateDTO): Promise<any>{
     await this.ResearchRepo.update(id, ResearchDTO);
-    return this.ResearchRepo.findOneBy({Id:id});
+    return await this.ResearchRepo.findOneBy({Id:id});
   }
 
   //Update Part End
@@ -131,11 +154,17 @@ export class TeacherService {
   }
 
   async deleteTeacherProfile(id: number): Promise<void>{
+    const emp = await this.TeacherProfileRepo.findOne({where:{TeacherProfileId: id}, relations:{Department:true}});
+    var deptId = emp.Department.DeptId;
+    const dept = await this.DepartmentRepo.findOneBy({DeptId: deptId});
+    dept.NumberOfWorkers -= 1;
+    await this.DepartmentRepo.update(dept.DeptId, dept);
     await this.TeacherProfileRepo.delete(id);
   }
 
   async deleteTeacherSalary(id: number): Promise<void>{
-    await this.TeacherSalaryRepo.delete(id);
+    var salary = await this.TeacherSalaryRepo.findOneBy({TeacherProfileId: id})
+    await this.TeacherSalaryRepo.delete(salary.SalaryId);
   }
 
   async deleteResearch(id: number): Promise<void>{
@@ -209,20 +238,39 @@ export class TeacherService {
   }
 
   async getDepartmentOfTeacher(name: string): Promise<any>{
-    return await this.TeacherProfileRepo.find({
+    var d = await this.TeacherProfileRepo.find({
+      select:{TeacherName:true, Department:{DepartmentName:true}},
       where:{
         TeacherName: name
       },
       relations:{
         Department: true
       }
-    })
+    });
+    return d;
   }
 
   async getTeacherListWithinSalaryRange(lowRange: number = 0, hightRange: number): Promise<any>{
-    const TeacherList = await this.TeacherProfileRepo.find();
-    const FilteredList = TeacherList.filter(x => x.TeacherSalary.Amount > lowRange && x.TeacherSalary.Amount < hightRange);
-    return FilteredList;
+    return await this.TeacherProfileRepo
+    .createQueryBuilder('TeacherProfile')
+    .leftJoin('TeacherProfile.TeacherSalary', 'TeacherSalary')
+    .where('TeacherSalary.Amount >= :lowRange', { lowRange })
+    .andWhere('TeacherSalary.Amount <= :hightRange', { hightRange })
+    .getMany();
+  }
+
+  async transferDeparment(empId: number, deptId: number): Promise<any>{
+    const emp = await this.TeacherProfileRepo.findOne({where:{TeacherProfileId: empId}, relations:{Department:true}});
+    const previousDeptId = emp.Department.DeptId;
+    const previousDept = await this.DepartmentRepo.findOneBy({DeptId: previousDeptId});
+    previousDept.NumberOfWorkers -= 1;
+    await this.DepartmentRepo.update(previousDeptId, previousDept);
+    const dept = await this.DepartmentRepo.findOneBy({DeptId: deptId});
+    dept.NumberOfWorkers += 1;
+    await this.DepartmentRepo.update(dept.DeptId, dept);
+    emp.Department = dept;
+    emp.DepartmentId = dept.DeptId;
+    return await this.TeacherProfileRepo.update(empId, emp);
   }
 
   //Feature Api End

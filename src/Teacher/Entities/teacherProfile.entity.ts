@@ -39,6 +39,9 @@ export class TeacherProfileEntity{
     @Column()
     filename: string;
 
+    @Column()
+    DepartmentId: number;
+
     @OneToOne(() => TeacherEntity, teacherEntity => teacherEntity.Profile)
     Teacher: TeacherEntity;
 
@@ -46,7 +49,6 @@ export class TeacherProfileEntity{
     TeacherSalary: TeacherSalaryEntity;
 
     @ManyToOne(() => DepartmentEntity, (departmentEntity) => departmentEntity.Teachers)
-    @JoinColumn({ name: 'DepartmentId' })
     Department: DepartmentEntity;
 
     @OneToMany(() => ResearchEntity, (researchEntity) => researchEntity.Teacher)
